@@ -179,9 +179,9 @@ local function get_node_neighbours(grid,node)
         local nei_x = node.pos.x + vec.x
         local nei_y = node.pos.y + vec.y
         local nei_z = node.pos.z + vec.z
-        if ((nei_x >= 0) and (nei_x <= grid.size.w)) and
-        ((nei_y >= 0) and (nei_y <= grid.size.h)) and
-        ((nei_z >= 0) and (nei_z <= grid.size.d)) then
+        if (nei_x <= grid.size.w) and
+        (nei_y <= grid.size.h) and
+        (nei_z <= grid.size.d) then
             local neighbor_index = grid.grid.NODE_LOOKUP[nei_x][nei_y][nei_z]
             table.insert(neighbours,grid.grid.points[neighbor_index])
         end
