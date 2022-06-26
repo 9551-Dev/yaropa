@@ -3,19 +3,15 @@ The MIT License (MIT)
 Copyright © 2022 Oliver Caha (9551Dev)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-The MIT License (MIT)
-Copyright © 2022 Oliver Caha (9551Dev)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ]]
 
-local PATHFINDER = {}
+local YAROPA = {}
 
-function PATHFINDER.node(x,y,z,passable)
+function YAROPA.node(x,y,z,passable)
     if passable == nil then passable = true end
     local gCost = 0
     local hCost = 0
@@ -32,7 +28,7 @@ function PATHFINDER.node(x,y,z,passable)
     })
 end
 
-PATHFINDER.allowed_neighbour_positions = {
+YAROPA.allowed_neighbour_positions = {
     vector.new(0,1,0),
     vector.new(0,-1,0),
     vector.new(-1,0,0),
@@ -41,117 +37,27 @@ PATHFINDER.allowed_neighbour_positions = {
     vector.new(0,0,-1)
 }
 
-function PATHFINDER.createNDarray(n, tbl)
+function YAROPA.createNDarray(n, tbl)
     tbl = tbl or {}
     if n == 0 then return tbl end
     setmetatable(tbl, {__index = function(t, k)
-        local new = PATHFINDER.createNDarray(n - 1)
+        local new = YAROPA.createNDarray(n - 1)
         t[k] = new
         return new
     end})
     return tbl
 end
 
-function PATHFINDER.create_field(w,h,d,start_x,start_y,start_z)
+function YAROPA.create_field(w,h,d,start_x,start_y,start_z)
     start_x,start_y,start_z = start_x or 1,start_y or 1,start_z or 1
     local grid = {}
-    local GRID_LOOKUP = PATHFINDER.createNDarray(3)
+    local GRID_LOOKUP = YAROPA.createNDarray(3)
     local LAST_NODE = 0
     for x=start_x,start_x+w-1 do
         for y=start_y,start_y+h-1 do
             for z=start_z,start_z+d-1 do
                 LAST_NODE = LAST_NODE + 1
-                table.insert(grid,PATHFINDER.node(x,y,z,true))
-                GRID_LOOKUP[x][y][z] = LAST_NODE
-            end
-        end
-    end
-    return {grid={points=grid,NODE_LOOKUP=GRID_LOOKUP},size={w=w,h=h,d=d}}
-end
-
-local NODE_LIST_FUNCTIONS = {
-    add=function(proxy,LUTBL)
-        local LUT = LUTBL.reference
-        return function(node)
-            LUT.last_node = LUT.last_node + 1
-            table.insert(proxy,node)
-            LUT[node.pos.x][node.pos.y][node.pos.z] = LUT.last_node
-            return LUT.last_node
-        end
-    end,
-    get=function(proxy,LUTBL)
-        local LUT = LUTBL.reference
-        return function(x,y,z)
-            if LUT[x] and LUT[x][y] and LUT[x][y][z] then
-                local index = LUT[x][y][z]-LUTBL.offset
-                return proxy[index]
-            end
-        end
-    end,
-    get_by_index=function(proxy,LUTBL)
-        return function(n)
-            return proxy[n]
-        end
-    end,
-    contains=function(proxy,LUTBL)
-        local LUT = LUTBL.reference
-        return function(x,y,z)
-            if LUT[x] and LUT[x][y] and LUT[x][y][z] then
-                return true
-            else return false end
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-local PATHFINDER = {}
-
-function PATHFINDER.node(x,y,z,passable)
-    if passable == nil then passable = true end
-    local gCost = 0
-    local hCost = 0
-    return setmetatable({
-        passable = passable,
-        gCost = gCost,
-        hCost = hCost,
-        pos = vector.new(x,y,z),
-    },{__index=function(self,index)
-            if index == "fCost" then
-                return self.gCost+self.hCost
-            end
-        end
-    })
-end
-
-PATHFINDER.allowed_neighbour_positions = {
-    vector.new(0,1,0),
-    vector.new(0,-1,0),
-    vector.new(-1,0,0),
-    vector.new(1,0,0),
-    vector.new(0,0,1),
-    vector.new(0,0,-1)
-}
-
-function PATHFINDER.createNDarray(n, tbl)
-    tbl = tbl or {}
-    if n == 0 then return tbl end
-    setmetatable(tbl, {__index = function(t, k)
-        local new = PATHFINDER.createNDarray(n - 1)
-        t[k] = new
-        return new
-    end})
-    return tbl
-end
-
-function PATHFINDER.create_field(w,h,d,start_x,start_y,start_z)
-    start_x,start_y,start_z = start_x or 1,start_y or 1,start_z or 1
-    local grid = {}
-    local GRID_LOOKUP = PATHFINDER.createNDarray(3)
-    local LAST_NODE = 0
-    for x=start_x,start_x+w-1 do
-        for y=start_y,start_y+h-1 do
-            for z=start_z,start_z+d-1 do
-                LAST_NODE = LAST_NODE + 1
-                table.insert(grid,PATHFINDER.node(x,y,z,true))
+                table.insert(grid,YAROPA.node(x,y,z,true))
                 GRID_LOOKUP[x][y][z] = LAST_NODE
             end
         end
@@ -217,7 +123,7 @@ local NODE_LIST_FUNCTIONS = {
     end,
     rebuild_LUT=function(proxy,LUTBL)
         return function()
-            local new = PATHFINDER.createNDarray(2)
+            local new = YAROPA.createNDarray(2)
             new.last_node = 0
             new.offset = 0
             for index,node in pairs(proxy) do
@@ -229,9 +135,9 @@ local NODE_LIST_FUNCTIONS = {
     end
 }
 
-function PATHFINDER.create_node_list()
+function YAROPA.create_node_list()
     local proxy = {}
-    local LUT = {reference=PATHFINDER.createNDarray(2)}
+    local LUT = {reference=YAROPA.createNDarray(2)}
     LUT.reference.last_node = 0
     LUT.offset = 0
     local list = setmetatable({},{
@@ -272,7 +178,7 @@ end
 
 local function get_node_neighbours(grid,node)
     local neighbours = {}
-    for side_index,vec in pairs(PATHFINDER.allowed_neighbour_positions) do
+    for side_index,vec in pairs(YAROPA.allowed_neighbour_positions) do
         local nei_x = node.pos.x + vec.x
         local nei_y = node.pos.y + vec.y
         local nei_z = node.pos.z + vec.z
@@ -311,11 +217,11 @@ local function retrace_path(start_node,final_node,p)
     return reverse_table(path)
 end
 
-function PATHFINDER.pathfind(grid, start, target)
+function YAROPA.pathfind(grid, start, target)
     local starting_node = start
     local target_node = target
-    local open_nodes = PATHFINDER.create_node_list()
-    local closed_nodes = PATHFINDER.create_node_list()
+    local open_nodes = YAROPA.create_node_list()
+    local closed_nodes = YAROPA.create_node_list()
     local last_parent
     open_nodes.add(starting_node)
     while next(open_nodes.get_proxy()) do
@@ -355,4 +261,4 @@ function PATHFINDER.pathfind(grid, start, target)
     return {},false
 end
 
-return PATHFINDER
+return YAROPA
