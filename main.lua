@@ -72,15 +72,6 @@ local NODE_LIST_FUNCTIONS = {
             return LUT.last_node
         end
     end,
-    get=function(proxy,LUTBL)
-        local LUT = LUTBL.reference
-        return function(x,y,z)
-            if LUT[x] and LUT[x][y] and LUT[x][y][z] then
-                local index = LUT[x][y][z]-LUTBL.offset
-                return proxy[index]
-            end
-        end
-    end,
     get_by_index=function(proxy,LUTBL)
         return function(n)
             return proxy[n]
@@ -92,21 +83,6 @@ local NODE_LIST_FUNCTIONS = {
             if LUT[x] and LUT[x][y] and LUT[x][y][z] then
                 return true
             else return false end
-        end
-    end,
-    remove_node=function(proxy,LUTBL)
-        local LUT = LUTBL.reference
-        return function(x,y,z)
-            if LUT[x] and LUT[x][y] and LUT[x][y][z] then
-                local index = LUT[x][y][z]
-                return table.remove(proxy,index)
-            end
-        end
-    end,
-    remove_first_node=function(proxy,LUT)
-        return function()
-            LUT.offset = LUT.offset + 1
-            return table.remove(proxy,1)
         end
     end,
     remove=function(proxy,LUTBL)
